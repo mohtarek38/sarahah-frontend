@@ -1,23 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import { useState, useEffect } from "react";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 
 function App() {
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    setHasToken(!!localStorage.getItem("accessToken"));
+    const handler = () => setHasToken(!!localStorage.getItem("accessToken"));
+    window.addEventListener("sarahah:login", handler);
+    return () => window.removeEventListener("sarahah:login", handler);
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <main className="App-main">{hasToken ? <Profile /> : <Login onLogin={() => setHasToken(true)} />}</main>
     </div>
   );
 }
