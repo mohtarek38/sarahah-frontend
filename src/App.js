@@ -1,22 +1,38 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ConfirmEmail from "./pages/ConfirmEmail";
 import Profile from "./pages/Profile";
 
 function App() {
-  const [hasToken, setHasToken] = useState(false);
+  const [hasToken, setHasToken] = useState(() => !!localStorage.getItem("accessToken"));
 
-  useEffect(() => {
-    setHasToken(!!localStorage.getItem("accessToken"));
-    const handler = () => setHasToken(!!localStorage.getItem("accessToken"));
-    window.addEventListener("sarahah:login", handler);
-    return () => window.removeEventListener("sarahah:login", handler);
-  }, []);
+  const handleLogin = () => {
+    setHasToken(true);
+  };
+
+  const handleLogout = () => {
+    setHasToken(false);
+  };
 
   return (
-    <div className="App">
-      <main className="App-main">{hasToken ? <Profile /> : <Login onLogin={() => setHasToken(true)} />}</main>
-    </div>
+    <ThemeProvider>
+      <div className="App">
+        <main className="App-main">
+          <Routes>
+            <Route path="/login" element={<Login onLogin={handleLogin} />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/confirm-email" element={<ConfirmEmail />} />
+            <Route path="/profile" element={hasToken ? <Profile onLogout={handleLogout} /> : <Navigate to="/login" />} />
+            <Route path="/" element={hasToken ? <Navigate to="/profile" /> : <Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }
 

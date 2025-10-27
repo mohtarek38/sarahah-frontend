@@ -1,0 +1,225 @@
+/* ========================================
+   CONFIRM EMAIL PAGE STYLES
+   ======================================== */
+.confirm-root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 16px;
+  transition: background 0.3s ease;
+}
+
+.confirm-card {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 40px 36px;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.confirm-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.confirm-card h2 {
+  margin: 0 0 12px 0;
+  color: #1a202c;
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.confirm-description {
+  color: #4a5568;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.confirm-label {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #4a5568;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.confirm-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 15px;
+  background: #f7fafc;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  color: #2d3748;
+}
+
+.confirm-input:focus {
+  border-color: #667eea;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.otp-input {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 12px;
+  text-align: center;
+  padding: 16px;
+  font-family: "Courier New", monospace;
+}
+
+.confirm-button {
+  margin-top: 24px;
+  width: 100%;
+  padding: 14px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.confirm-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.confirm-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.confirm-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.confirm-error {
+  background: #fed7d7;
+  color: #c53030;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+  border: 1px solid #fc8181;
+}
+
+.confirm-success {
+  background: #c6f6d5;
+  color: #22543d;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+  border: 1px solid #68d391;
+}
+
+.confirm-help {
+  margin-top: 20px;
+  text-align: center;
+  color: #718096;
+  font-size: 14px;
+}
+
+.confirm-link {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+
+.confirm-link:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 600px) {
+  .confirm-card {
+    max-width: 92vw;
+    padding: 32px 24px;
+  }
+
+  .otp-input {
+    font-size: 24px;
+    letter-spacing: 8px;
+  }
+}
+
+/* ========================================
+   DARK MODE STYLES
+   ======================================== */
+.confirm-root.dark-mode {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.dark-mode .confirm-card {
+  background: #1e1e2e;
+  color: #e2e8f0;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.dark-mode .confirm-description {
+  color: #a0aec0;
+}
+
+.dark-mode .confirm-label {
+  color: #a0aec0;
+}
+
+.dark-mode .confirm-input {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #e2e8f0;
+}
+
+.dark-mode .confirm-input:focus {
+  background: #2a2a3e;
+  border-color: #667eea;
+}
+
+.dark-mode .confirm-help {
+  color: #a0aec0;
+}
+
+.dark-mode .confirm-error {
+  background: #742a2a;
+  color: #fed7d7;
+  border-color: #fc8181;
+}
+
+.dark-mode .confirm-success {
+  background: #22543d;
+  color: #c6f6d5;
+  border-color: #68d391;
+}
