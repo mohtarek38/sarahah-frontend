@@ -169,7 +169,7 @@ export const apiDelete = async (endpoint) => {
   });
 };
 
-export default {
+const apiUtils = {
   fetchWithAuth,
   refreshAccessToken,
   apiGet,
@@ -177,3 +177,5 @@ export default {
   apiPatch,
   apiDelete,
 };
+
+export default apiUtils;

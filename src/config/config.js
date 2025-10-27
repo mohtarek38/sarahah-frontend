@@ -2,9 +2,12 @@
  * Centralized configuration for the application
  */
 
+export const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:3000/api";
+export const POLLING_INTERVAL = Number(process.env.REACT_APP_POLLING_INTERVAL) || 10000;
+
 export const config = {
-  apiBase: process.env.REACT_APP_API_BASE,
-  pollingInterval: +process.env.POLLING_INTERVAL,
+  apiBase: API_BASE,
+  pollingInterval: POLLING_INTERVAL,
 };
 
 export default config;

@@ -90,24 +90,7 @@ export default function Login({ onLogin }) {
             {error}
             {needsConfirmation && (
               <div style={{ marginTop: "12px" }}>
-                <button
-                  type="button"
-                  onClick={goToConfirmation}
-                  className="confirm-email-link"
-                  style={{
-                    background: "linear-gradient(135deg, #48bb78 0%, #38a169 100%)",
-                    color: "#fff",
-                    border: "none",
-                    padding: "10px 20px",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    transition: "all 0.3s ease",
-                  }}
-                  onMouseOver={(e) => (e.target.style.transform = "translateY(-2px)")}
-                  onMouseOut={(e) => (e.target.style.transform = "translateY(0)")}
-                >
+                <button type="button" onClick={goToConfirmation} className="confirm-email-link">
                   Click here to confirm your email
                 </button>
               </div>

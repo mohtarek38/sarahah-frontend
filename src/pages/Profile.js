@@ -72,39 +72,6 @@ export default function Profile({ onLogout }) {
     }
   };
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("No access token found. Please log in.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // 1) Try to fetch profile from backend using fetchWithAuth (handles token refresh)
-      const profileRes = await fetchWithAuth(`${API_BASE}/users/me`);
-      if (profileRes.ok) {
-        const p = await profileRes.json();
-        setProfile(p.user || p);
-      } else if (profileRes.status === 404) {
-        setError("Profile endpoint not implemented on backend (GET /api/users/me).");
-      } else {
-        const t = await profileRes.json().catch(() => ({}));
-        setError(t.message || "Failed to fetch profile");
-      }
-
-      // 2) Fetch received messages from inbox endpoint
-      await fetchInbox();
-    } catch (err) {
-      console.error(err);
-      setError("Network error while fetching profile.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchInbox = useCallback(async (signal) => {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
@@ -147,6 +114,39 @@ export default function Profile({ onLogout }) {
     }
   }, []);
 
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setError("No access token found. Please log in.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // 1) Try to fetch profile from backend using fetchWithAuth (handles token refresh)
+      const profileRes = await fetchWithAuth(`${API_BASE}/users/me`);
+      if (profileRes.ok) {
+        const p = await profileRes.json();
+        setProfile(p.user || p);
+      } else if (profileRes.status === 404) {
+        setError("Profile endpoint not implemented on backend (GET /api/users/me).");
+      } else {
+        const t = await profileRes.json().catch(() => ({}));
+        setError(t.message || "Failed to fetch profile");
+      }
+
+      // 2) Fetch received messages from inbox endpoint
+      await fetchInbox();
+    } catch (err) {
+      console.error(err);
+      setError("Network error while fetching profile.");
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchInbox]);
+
   // Set up polling after fetchInbox is defined
   useEffect(() => {
     const controller = new AbortController();
@@ -163,7 +163,7 @@ export default function Profile({ onLogout }) {
       clearInterval(intervalId);
       controller.abort();
     };
-  }, [fetchInbox]);
+  }, [fetchInbox, fetchData]);
 
   const logout = async () => {
     const token = localStorage.getItem("accessToken");

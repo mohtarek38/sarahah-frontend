@@ -111,6 +111,27 @@
   border: 1px solid #fc8181;
 }
 
+.confirm-email-link {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.confirm-email-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.confirm-email-link:active {
+  transform: translateY(0);
+}
+
 .login-success {
   background: #c6f6d5;
   color: #22543d;
