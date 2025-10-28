@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { fetchWithAuth, apiPost, apiPatch } from "../utils/api";
 import DOMPurify from "dompurify";
 import { useTheme } from "../contexts/ThemeContext";
@@ -62,6 +62,11 @@ export default function Profile({ onLogout }) {
   const [emailCopied, setEmailCopied] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState("");
+
+  const searchContainerRef = useRef(null);
+  const searchToggleRef = useRef(null);
 
   const toggleSearch = () => {
     setShowSearch(!showSearch);
@@ -165,6 +170,28 @@ export default function Profile({ onLogout }) {
     };
   }, [fetchInbox, fetchData]);
 
+  // Handle click outside to close search box
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showSearch &&
+        searchContainerRef.current &&
+        searchToggleRef.current &&
+        !searchContainerRef.current.contains(event.target) &&
+        !searchToggleRef.current.contains(event.target)
+      ) {
+        setShowSearch(false);
+        setUserQuery("");
+        setUserResults([]);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSearch]);
+
   const logout = async () => {
     const token = localStorage.getItem("accessToken");
 
@@ -238,6 +265,109 @@ export default function Profile({ onLogout }) {
   const cancelEdit = () => {
     setEditingField(null);
     setEditValue("");
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (1MB limit as per backend)
+    if (file.size > 1 * 1024 * 1024) {
+      setImageUploadError("File size must be less than 1MB");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setImageUploadError("Please select a valid image file");
+      return;
+    }
+
+    setUploadingImage(true);
+    setImageUploadError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("profile", file);
+
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`${API_BASE}/users/me/upload-profile`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setImageUploadError(json.message || "Failed to upload image");
+        setUploadingImage(false);
+        return;
+      }
+
+      // Update profile with new image
+      if (json.user?.profileImage) {
+        setProfile((prev) => ({
+          ...prev,
+          profileImage: json.user.profileImage,
+        }));
+        setUpdateSuccess("Profile image uploaded successfully!");
+        setTimeout(() => setUpdateSuccess(""), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      setImageUploadError("Network error while uploading image");
+    } finally {
+      setUploadingImage(false);
+      // Reset file input
+      event.target.value = "";
+    }
+  };
+
+  const handleImageDelete = async () => {
+    if (!profile?.profileImage) return;
+
+    if (!window.confirm("Are you sure you want to remove your profile picture?")) {
+      return;
+    }
+
+    setUploadingImage(true);
+    setImageUploadError("");
+
+    try {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`${API_BASE}/users/me/delete-profile-image`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setImageUploadError(json.message || "Failed to delete image");
+        setUploadingImage(false);
+        return;
+      }
+
+      // Remove profileImage from profile
+      setProfile((prev) => {
+        const updated = { ...prev };
+        delete updated.profileImage;
+        return updated;
+      });
+      setUpdateSuccess("Profile image removed successfully!");
+      setTimeout(() => setUpdateSuccess(""), 3000);
+    } catch (err) {
+      console.error(err);
+      setImageUploadError("Network error while deleting image");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   // Debounced users search
@@ -389,12 +519,12 @@ export default function Profile({ onLogout }) {
       <ThemeToggle />
 
       {/* Search Toggle Icon */}
-      <button className="search-toggle" onClick={toggleSearch} title={showSearch ? "Hide Search" : "Search Users"}>
+      <button ref={searchToggleRef} className="search-toggle" onClick={toggleSearch} title={showSearch ? "Hide Search" : "Search Users"}>
         {showSearch ? "✕" : "🔍"}
       </button>
 
       {/* Search Bar Container - Show/Hide based on state */}
-      <div className={`search-bar-container ${showSearch ? "search-visible" : "search-hidden"}`}>
+      <div ref={searchContainerRef} className={`search-bar-container ${showSearch ? "search-visible" : "search-hidden"}`}>
         <div className="search-input-wrapper">
           <input
             className="search-input"
@@ -464,12 +594,32 @@ export default function Profile({ onLogout }) {
 
       <div className="profile-card">
         <div className="profile-header">
-          <div className="profile-avatar">
-            {profile?.profileImage?.secure_url ? (
-              <img src={profile.profileImage.secure_url} alt="profile" />
-            ) : (
-              <div className="avatar-fallback">{(profile?.firstName || "U").charAt(0)}</div>
-            )}
+          <div className="profile-avatar-wrapper">
+            <div className="profile-avatar">
+              {profile?.profileImage?.secure_url ? (
+                <img src={profile.profileImage.secure_url} alt="profile" />
+              ) : (
+                <div className="avatar-fallback">{(profile?.firstName || "U").charAt(0)}</div>
+              )}
+            </div>
+            <div className="avatar-overlay">
+              <input
+                type="file"
+                id="profile-image-input"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+              />
+              <label htmlFor="profile-image-input" className="avatar-btn avatar-upload">
+                {uploadingImage ? "Uploading..." : profile?.profileImage ? "Change Photo" : "Add Photo"}
+              </label>
+              {profile?.profileImage && (
+                <button className="avatar-btn avatar-remove" onClick={handleImageDelete} disabled={uploadingImage}>
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
           <div className="profile-info">
             <h2>{profile?.fullName || `${profile?.firstName || ""} ${profile?.lastName || ""}`}</h2>
@@ -490,6 +640,7 @@ export default function Profile({ onLogout }) {
         </div>
 
         {error && <div className="profile-error">{error}</div>}
+        {imageUploadError && <div className="profile-error">{imageUploadError}</div>}
         {updateSuccess && <div className="profile-update-success">✓ {updateSuccess}</div>}
 
         <div className="profile-body">
