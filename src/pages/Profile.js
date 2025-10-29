@@ -3,7 +3,7 @@ import { fetchWithAuth, apiPost, apiPatch } from "../utils/api";
 import DOMPurify from "dompurify";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
-import { API_BASE, POLLING_INTERVAL } from "../config/config";
+import { API_BASE, POLLING_INTERVAL, ageLimits, nameLimits, bioLimits } from "../config/config";
 import "./Profile.css";
 
 // Helper function to format relative time
@@ -474,11 +474,26 @@ export default function Profile({ onLogout }) {
       return;
     }
 
-    // Validate age if that's what we're editing
+    // Validate based on field type
     if (fieldName === "age") {
       const ageNum = Number(editValue);
-      if (isNaN(ageNum) || ageNum < 0 || ageNum > 120) {
-        setError("Please enter a valid age between 0 and 120");
+      if (isNaN(ageNum) || ageNum < ageLimits.MIN_AGE || ageNum > ageLimits.MAX_AGE) {
+        setError(`Please enter a valid age between ${ageLimits.MIN_AGE} and ${ageLimits.MAX_AGE}`);
+        return;
+      }
+    }
+
+    if (fieldName === "firstName" || fieldName === "lastName") {
+      const trimmedValue = editValue.trim();
+      if (trimmedValue.length < nameLimits.MIN_NAME_LENGTH || trimmedValue.length > nameLimits.MAX_NAME_LENGTH) {
+        setError(`Name must be between ${nameLimits.MIN_NAME_LENGTH} and ${nameLimits.MAX_NAME_LENGTH} characters`);
+        return;
+      }
+    }
+
+    if (fieldName === "bio") {
+      if (editValue.length > bioLimits.MAX_BIO_LENGTH) {
+        setError(`Bio must be ${bioLimits.MAX_BIO_LENGTH} characters or less`);
         return;
       }
     }
@@ -650,7 +665,16 @@ export default function Profile({ onLogout }) {
               {editingField === "bio" ? (
                 <div className="bio-editing">
                   <label>Bio</label>
-                  <textarea className="edit-input bio-textarea" value={editValue} onChange={(e) => setEditValue(e.target.value)} rows="4" />
+                  <textarea
+                    className="edit-input bio-textarea"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    rows="4"
+                    maxLength={bioLimits.MAX_BIO_LENGTH}
+                  />
+                  <div className="char-count">
+                    {editValue.length} / {bioLimits.MAX_BIO_LENGTH}
+                  </div>
                   <div className="edit-actions">
                     <button className="btn-tick" onClick={() => saveEdit("bio")}>
                       ✓ Save
@@ -680,7 +704,12 @@ export default function Profile({ onLogout }) {
                 <div className="editable-value">
                   {editingField === "firstName" ? (
                     <>
-                      <input className="edit-input" value={editValue} onChange={(e) => setEditValue(e.target.value)} />
+                      <input
+                        className="edit-input"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        maxLength={nameLimits.MAX_NAME_LENGTH}
+                      />
                       <div className="edit-actions">
                         <button className="btn-tick" onClick={() => saveEdit("firstName")}>
                           ✓
@@ -706,7 +735,12 @@ export default function Profile({ onLogout }) {
                 <div className="editable-value">
                   {editingField === "lastName" ? (
                     <>
-                      <input className="edit-input" value={editValue} onChange={(e) => setEditValue(e.target.value)} />
+                      <input
+                        className="edit-input"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        maxLength={nameLimits.MAX_NAME_LENGTH}
+                      />
                       <div className="edit-actions">
                         <button className="btn-tick" onClick={() => saveEdit("lastName")}>
                           ✓
@@ -732,7 +766,13 @@ export default function Profile({ onLogout }) {
                 <div className="editable-value">
                   {editingField === "age" ? (
                     <>
-                      <input type="number" className="edit-input" value={editValue} onChange={(e) => setEditValue(e.target.value)} />
+                      <input
+                        type="text"
+                        className="edit-input"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        placeholder="Enter age"
+                      />
                       <div className="edit-actions">
                         <button className="btn-tick" onClick={() => saveEdit("age")}>
                           ✓

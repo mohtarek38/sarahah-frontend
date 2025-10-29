@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
-import { API_BASE } from "../config/config";
+import { API_BASE, GOOGLE_CLIENT_ID } from "../config/config";
 import "./Login.css";
 
 export default function Login({ onLogin }) {
@@ -13,6 +13,7 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const googleButtonRef = useRef(null);
 
   const validate = () => {
     setError("");
@@ -77,6 +78,90 @@ export default function Login({ onLogin }) {
     navigate("/confirm-email");
   };
 
+  // Handle Google Sign-In response
+  const handleGoogleResponse = useCallback(
+    async (response) => {
+      try {
+        setLoading(true);
+        setError("");
+
+        // Send the credential (JWT token) to your backend
+        const res = await fetch(`${API_BASE}/auth/google-auth`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: response.credential }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data?.message || "Google sign-in failed");
+          setLoading(false);
+          return;
+        }
+
+        // Save tokens
+        if (data.accesstoken) localStorage.setItem("accessToken", data.accesstoken);
+        if (data.refreshtoken) localStorage.setItem("refreshToken", data.refreshtoken);
+
+        // Notify parent component
+        if (onLogin) onLogin();
+
+        // Redirect to profile page
+        navigate("/");
+      } catch (err) {
+        console.error("Google sign-in error:", err);
+        setError("Network error during Google sign-in. Please try again.");
+        setLoading(false);
+      }
+    },
+    [navigate, onLogin]
+  );
+
+  // Initialize Google Sign-In button
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) {
+      console.warn("Google Client ID not configured");
+      return;
+    }
+
+    // Wait for Google API to load
+    const initializeGoogleSignIn = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+        });
+
+        // Render the button
+        if (googleButtonRef.current) {
+          window.google.accounts.id.renderButton(googleButtonRef.current, {
+            theme: darkMode ? "filled_black" : "outline",
+            size: "large",
+            width: googleButtonRef.current.offsetWidth,
+            text: "signin_with",
+            shape: "rectangular",
+          });
+        }
+      }
+    };
+
+    // Check if script is already loaded
+    if (window.google) {
+      initializeGoogleSignIn();
+    } else {
+      // Wait for script to load
+      const checkGoogle = setInterval(() => {
+        if (window.google) {
+          clearInterval(checkGoogle);
+          initializeGoogleSignIn();
+        }
+      }, 100);
+
+      return () => clearInterval(checkGoogle);
+    }
+  }, [darkMode, handleGoogleResponse]);
+
   return (
     <div className={`login-root ${darkMode ? "dark-mode" : ""}`}>
       {/* Dark Mode Toggle */}
@@ -121,6 +206,9 @@ export default function Login({ onLogin }) {
         <button className="login-button" type="submit" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </button>
+
+        {/* Google Sign-In Button - rendered by Google */}
+        {GOOGLE_CLIENT_ID && <div ref={googleButtonRef} className="google-signin-wrapper"></div>}
 
         <div className="login-help">
           <small>

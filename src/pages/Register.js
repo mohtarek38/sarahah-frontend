@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
-import { API_BASE } from "../config/config";
+import { API_BASE, ageLimits, nameLimits } from "../config/config";
 import "./Register.css";
 
 export default function Register() {
@@ -36,6 +36,18 @@ export default function Register() {
       return false;
     }
 
+    // First name validation
+    if (formData.firstName.trim().length < nameLimits.MIN_NAME_LENGTH || formData.firstName.trim().length > nameLimits.MAX_NAME_LENGTH) {
+      setError(`First name must be between ${nameLimits.MIN_NAME_LENGTH} and ${nameLimits.MAX_NAME_LENGTH} characters`);
+      return false;
+    }
+
+    // Last name validation
+    if (formData.lastName.trim().length < nameLimits.MIN_NAME_LENGTH || formData.lastName.trim().length > nameLimits.MAX_NAME_LENGTH) {
+      setError(`Last name must be between ${nameLimits.MIN_NAME_LENGTH} and ${nameLimits.MAX_NAME_LENGTH} characters`);
+      return false;
+    }
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -56,8 +68,8 @@ export default function Register() {
     }
 
     // Age validation (if provided)
-    if (formData.age && (formData.age < 13 || formData.age > 120)) {
-      setError("Please enter a valid age");
+    if (formData.age && (formData.age < ageLimits.MIN_AGE || formData.age > ageLimits.MAX_AGE)) {
+      setError(`Age must be between ${ageLimits.MIN_AGE} and ${ageLimits.MAX_AGE}`);
       return false;
     }
 
@@ -139,6 +151,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder="John"
               autoComplete="given-name"
+              maxLength={nameLimits.MAX_NAME_LENGTH}
             />
           </div>
 
@@ -152,6 +165,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder="Doe"
               autoComplete="family-name"
+              maxLength={nameLimits.MAX_NAME_LENGTH}
             />
           </div>
         </div>
@@ -172,13 +186,11 @@ export default function Register() {
             <label className="register-label">Age</label>
             <input
               className="register-input"
-              type="number"
+              type="text"
               name="age"
               value={formData.age}
               onChange={handleChange}
-              placeholder=""
-              min="13"
-              max="120"
+              placeholder={`${ageLimits.MIN_AGE}-${ageLimits.MAX_AGE}`}
             />
           </div>
 

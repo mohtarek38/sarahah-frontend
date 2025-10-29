@@ -100,6 +100,14 @@
   cursor: not-allowed;
 }
 
+.google-signin-wrapper {
+  margin-top: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .login-error {
   background: #fed7d7;
   color: #c53030;
