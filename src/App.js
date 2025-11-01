@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ConfirmEmail from "./pages/ConfirmEmail";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 
 function App() {
   const [hasToken, setHasToken] = useState(() => !!localStorage.getItem("accessToken"));
@@ -28,7 +29,7 @@ function App() {
             <Route path="/confirm-email" element={<ConfirmEmail />} />
             <Route path="/profile" element={hasToken ? <Profile onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/" element={hasToken ? <Navigate to="/profile" /> : <Navigate to="/login" />} />
-            <Route path="*" element={<Navigate to="/login" />} />
+            <Route path="/:userId" element={<PublicProfile />} />
           </Routes>
         </main>
       </div>

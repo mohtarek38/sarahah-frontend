@@ -453,35 +453,47 @@
   margin-bottom: 20px;
 }
 
-.bio-display {
-  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-  padding: 20px;
-  border-radius: 14px;
-  border: 2px solid #e2e8f0;
-}
-
-.bio-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.bio-header label {
+/* Bio label styling (now outside the component) */
+.profile-left > label {
+  display: block;
   font-weight: 700;
   font-size: 13px;
   color: #8b95ea;
   text-transform: uppercase;
   letter-spacing: 1px;
+  margin-bottom: 10px;
+  margin-top: 8px;
+}
+
+.bio-display {
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  padding: 20px;
+  border-radius: 14px;
+  border: 2px solid #e2e8f0;
+  position: relative;
+}
+
+.bio-header {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+.bio-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .profile-bio {
   margin: 0;
+  padding-right: 50px;
   color: #2d3748;
   line-height: 1.7;
   font-size: 15px;
   white-space: pre-wrap;
   word-wrap: break-word;
+  min-height: 40px;
 }
 
 .bio-editing {
@@ -490,16 +502,6 @@
   border-radius: 14px;
   border: 3px solid #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.bio-editing label {
-  display: block;
-  font-weight: 700;
-  font-size: 13px;
-  color: #8b95ea;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 12px;
 }
 
 .bio-textarea {
@@ -563,11 +565,19 @@
   gap: 8px;
   flex: 1;
   justify-content: space-between;
-  flex-wrap: wrap;
 }
 
 .field-value {
   flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.field-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .edit-input {
@@ -627,6 +637,33 @@ select.edit-input {
   color: #fff;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-visibility {
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border: 2px solid #cbd5e1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.btn-visibility:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-visibility.hidden {
+  opacity: 0.6;
+  border-color: #e53e3e;
+}
+
+.btn-visibility.visible {
+  border-color: #48bb78;
 }
 
 .btn-tick {
@@ -1216,6 +1253,10 @@ select.edit-input {
   color: #8b95ea;
 }
 
+.dark-mode .profile-left > label {
+  color: #a0aec0;
+}
+
 .dark-mode .bio-display {
   background: linear-gradient(135deg, #2a2a3e 0%, #2d3748 100%);
   border-color: #3a3a4e;
@@ -1283,6 +1324,16 @@ select.edit-input {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-color: #667eea;
   color: #fff;
+}
+
+.dark-mode .btn-visibility {
+  background: linear-gradient(135deg, #2a2a3e 0%, #2d3748 100%);
+  border-color: #4a5568;
+}
+
+.dark-mode .btn-visibility:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
 }
 
 .dark-mode .btn-cross {
