@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
 import { API_BASE, ageLimits, nameLimits } from "../config/config";
+import { validateSignupForm } from "../utils/validation";
 import "./Register.css";
 
 export default function Register() {
@@ -30,52 +31,24 @@ export default function Register() {
   const validate = () => {
     setError("");
 
-    // Check all required fields
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      setError("Please fill in all required fields");
-      return false;
-    }
+    // Convert age to number if provided
+    const signupData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+      age: formData.age ? parseInt(formData.age) : undefined,
+      gender: formData.gender || undefined,
+      phoneNumber: formData.phoneNumber || undefined,
+    };
 
-    // First name validation
-    if (formData.firstName.trim().length < nameLimits.MIN_NAME_LENGTH || formData.firstName.trim().length > nameLimits.MAX_NAME_LENGTH) {
-      setError(`First name must be between ${nameLimits.MIN_NAME_LENGTH} and ${nameLimits.MAX_NAME_LENGTH} characters`);
-      return false;
-    }
+    const validation = validateSignupForm(signupData);
 
-    // Last name validation
-    if (formData.lastName.trim().length < nameLimits.MIN_NAME_LENGTH || formData.lastName.trim().length > nameLimits.MAX_NAME_LENGTH) {
-      setError(`Last name must be between ${nameLimits.MIN_NAME_LENGTH} and ${nameLimits.MAX_NAME_LENGTH} characters`);
-      return false;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
-      return false;
-    }
-
-    // Password validation
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return false;
-    }
-
-    // Confirm password
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-
-    // Age validation (if provided)
-    if (formData.age && (formData.age < ageLimits.MIN_AGE || formData.age > ageLimits.MAX_AGE)) {
-      setError(`Age must be between ${ageLimits.MIN_AGE} and ${ageLimits.MAX_AGE}`);
-      return false;
-    }
-
-    // Phone number validation (if provided)
-    if (formData.phoneNumber && formData.phoneNumber.length < 10) {
-      setError("Please enter a valid phone number");
+    if (!validation.valid) {
+      // Display the first error found
+      const firstError = Object.values(validation.errors)[0];
+      setError(firstError);
       return false;
     }
 

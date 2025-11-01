@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
-import { API_BASE } from "../config/config";
+import { API_BASE, messageLimits } from "../config/config";
+import { validateMessage } from "../utils/validation";
 import "./PublicProfile.css";
 
 export default function PublicProfile() {
@@ -60,8 +61,10 @@ export default function PublicProfile() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
-    if (!message.trim()) {
-      setSendError("Message cannot be empty");
+    // Validate message using centralized validator
+    const validation = validateMessage(message);
+    if (!validation.valid) {
+      setSendError(validation.error);
       return;
     }
 
@@ -205,12 +208,14 @@ export default function PublicProfile() {
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Write your anonymous message here..."
               rows="6"
-              maxLength={500}
+              maxLength={messageLimits.MAX_MESSAGE_LENGTH}
               disabled={sending}
             />
 
             <div className="message-footer">
-              <span className="char-count">{message.length} / 500</span>
+              <span className="char-count">
+                {message.length} / {messageLimits.MAX_MESSAGE_LENGTH}
+              </span>
               <button type="submit" className="btn-send" disabled={sending || !message.trim()}>
                 {sending ? "Sending..." : "Send Message"}
               </button>

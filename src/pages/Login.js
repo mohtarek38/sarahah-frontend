@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
 import { API_BASE, GOOGLE_CLIENT_ID } from "../config/config";
+import { validateLoginForm } from "../utils/validation";
 import "./Login.css";
 
 export default function Login({ onLogin }) {
@@ -18,16 +19,16 @@ export default function Login({ onLogin }) {
   const validate = () => {
     setError("");
     setNeedsConfirmation(false);
-    if (!email || !password) {
-      setError("Email and password are required");
+
+    const validation = validateLoginForm({ email, password });
+
+    if (!validation.valid) {
+      // Display the first error found
+      const firstError = Object.values(validation.errors)[0];
+      setError(firstError);
       return false;
     }
-    // simple email regex
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!re.test(email)) {
-      setError("Please enter a valid email address");
-      return false;
-    }
+
     return true;
   };
 
