@@ -5,6 +5,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ConfirmEmail from "./pages/ConfirmEmail";
+import RequestPasswordReset from "./pages/RequestPasswordReset";
+import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import PublicProfile from "./pages/PublicProfile";
 
@@ -27,6 +29,8 @@ function App() {
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
+            <Route path="/request-password-reset" element={<RequestPasswordReset />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/profile" element={hasToken ? <Profile onLogout={handleLogout} /> : <Navigate to="/login" />} />
             <Route path="/" element={hasToken ? <Navigate to="/profile" /> : <Navigate to="/login" />} />
             <Route path="/:userId" element={<PublicProfile />} />

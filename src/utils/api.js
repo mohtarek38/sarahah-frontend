@@ -169,6 +169,32 @@ export const apiDelete = async (endpoint) => {
   });
 };
 
+/**
+ * Request password reset OTP
+ */
+export const requestPasswordReset = async (email) => {
+  return fetch(`${API_BASE}/auth/request-password-reset`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+};
+
+/**
+ * Reset password with OTP
+ */
+export const resetPassword = async (email, otp, newPassword) => {
+  return fetch(`${API_BASE}/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, otp, newPassword }),
+  });
+};
+
 const apiUtils = {
   fetchWithAuth,
   refreshAccessToken,
@@ -176,6 +202,8 @@ const apiUtils = {
   apiPost,
   apiPatch,
   apiDelete,
+  requestPasswordReset,
+  resetPassword,
 };
 
 export default apiUtils;

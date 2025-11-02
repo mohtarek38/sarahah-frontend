@@ -208,6 +208,14 @@ export default function Login({ onLogin }) {
           {loading ? "Signing in..." : "Sign in"}
         </button>
 
+        <div className="login-forgot-password">
+          <small>
+            <a href="/request-password-reset" className="login-link">
+              Forgot your password?
+            </a>
+          </small>
+        </div>
+
         {/* Google Sign-In Button - rendered by Google */}
         {GOOGLE_CLIENT_ID && <div ref={googleButtonRef} className="google-signin-wrapper"></div>}
 

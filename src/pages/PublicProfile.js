@@ -38,9 +38,6 @@ export default function PublicProfile() {
         }
 
         const data = await res.json();
-        // Backend returns { message: "User fetched successfully", user: {...} }
-        // The user object has: firstName, lastName, profileImage, bio, age, gender
-        // hiddenFields are already removed by the backend
         setProfile(data.user);
       } catch (err) {
         console.error("Error fetching user profile:", err);
@@ -61,7 +58,6 @@ export default function PublicProfile() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
-    // Validate message using centralized validator
     const validation = validateMessage(message);
     if (!validation.valid) {
       setSendError(validation.error);
@@ -92,7 +88,6 @@ export default function PublicProfile() {
       setSendSuccess("Message sent successfully! 🎉");
       setMessage("");
 
-      // Clear success message after 3 seconds
       setTimeout(() => {
         setSendSuccess("");
       }, 3000);
@@ -135,96 +130,131 @@ export default function PublicProfile() {
     <div className={`public-profile-root ${darkMode ? "dark-mode" : ""}`}>
       <ThemeToggle />
 
-      <div className="public-profile-container">
+      <div className="public-profile-card">
+        {/* Profile Header */}
         <div className="profile-header">
-          <div className="profile-avatar">
-            {profile?.profileImage?.secure_url ? (
-              <img src={profile.profileImage.secure_url} alt="profile" />
-            ) : (
-              <div className="avatar-fallback">{(profile?.firstName || "U").charAt(0)}</div>
-            )}
-          </div>
-          <h1>{profile?.fullName || `${profile?.firstName || ""} ${profile?.lastName || ""}`}</h1>
-          {profile?.createdAt && (
-            <p className="profile-joined-date">
-              Joined{" "}
-              {new Date(profile.createdAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </p>
-          )}
-        </div>
-
-        <div className="profile-info-section">
-          <h3>About</h3>
-          {profile?.bio && (
-            <div className="bio-section">
-              <p className="profile-bio-text">{profile.bio}</p>
+          <div className="profile-header-left">
+            <div className="profile-avatar">
+              {profile?.profileImage?.secure_url ? (
+                <img src={profile.profileImage.secure_url} alt="profile" />
+              ) : (
+                <div className="avatar-fallback">{(profile?.firstName || "U").charAt(0).toUpperCase()}</div>
+              )}
             </div>
-          )}
-          <div className="info-grid">
-            {profile?.age && (
-              <div className="info-item">
-                <span className="info-label">Age</span>
-                <span className="info-value">{profile.age}</span>
-              </div>
-            )}
-            {profile?.gender && (
-              <div className="info-item">
-                <span className="info-label">Gender</span>
-                <span className="info-value" style={{ textTransform: "capitalize" }}>
-                  {profile.gender}
-                </span>
-              </div>
-            )}
-            {profile?.phoneNumber && (
-              <div className="info-item">
-                <span className="info-label">Phone</span>
-                <span className="info-value">{profile.phoneNumber}</span>
-              </div>
-            )}
-            {profile?.email && (
-              <div className="info-item">
-                <span className="info-label">Email</span>
-                <span className="info-value">{profile.email}</span>
-              </div>
-            )}
+            <div className="profile-info">
+              <h2>{profile?.fullName || `${profile?.firstName || ""} ${profile?.lastName || ""}`.trim()}</h2>
+              {profile?.createdAt && (
+                <p className="profile-sub">
+                  Joined{" "}
+                  {new Date(profile.createdAt).toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="message-section">
-          <h3>Send Anonymous Message</h3>
-          <p className="message-hint">Your message will be sent anonymously. Be kind and respectful! 💌</p>
+        {/* Profile Body */}
+        <div className="profile-body">
+          <div className="profile-left">
+            {/* Profile Details Section - Only show if there's any data */}
+            {(profile?.bio || profile?.email || profile?.phoneNumber || profile?.gender || profile?.age) && (
+              <>
+                <h3>Profile Details</h3>
 
-          <form onSubmit={handleSendMessage}>
-            {sendError && <div className="send-error">{sendError}</div>}
-            {sendSuccess && <div className="send-success">{sendSuccess}</div>}
+                {/* Bio */}
+                {profile?.bio && (
+                  <div className="bio-section">
+                    <div className="bio-display">
+                      <p className="profile-bio">{profile.bio}</p>
+                    </div>
+                  </div>
+                )}
 
-            <textarea
-              className="message-input"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Write your anonymous message here..."
-              rows="6"
-              maxLength={messageLimits.MAX_MESSAGE_LENGTH}
-              disabled={sending}
-            />
+                {/* Profile Details List */}
+                <ul className="profile-details">
+                  {profile?.email && (
+                    <li>
+                      <div className="editable-row">
+                        <strong>Email</strong>
+                        <div className="editable-value">
+                          <span className="field-value">{profile.email}</span>
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                  {profile?.phoneNumber && (
+                    <li>
+                      <div className="editable-row">
+                        <strong>Phone</strong>
+                        <div className="editable-value">
+                          <span className="field-value">{profile.phoneNumber}</span>
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                  {profile?.gender && (
+                    <li>
+                      <div className="editable-row">
+                        <strong>Gender</strong>
+                        <div className="editable-value">
+                          <span className="field-value" style={{ textTransform: "capitalize" }}>
+                            {profile.gender}
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                  {profile?.age && (
+                    <li>
+                      <div className="editable-row">
+                        <strong>Age</strong>
+                        <div className="editable-value">
+                          <span className="field-value">{profile.age}</span>
+                        </div>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              </>
+            )}
 
-            <div className="message-footer">
-              <span className="char-count">
-                {message.length} / {messageLimits.MAX_MESSAGE_LENGTH}
-              </span>
-              <button type="submit" className="btn-send" disabled={sending || !message.trim()}>
-                {sending ? "Sending..." : "Send Message"}
-              </button>
+            {/* Message Section */}
+            <div className="message-section">
+              <h3>Send Anonymous Message</h3>
+              <p className="message-hint">Your message will be sent anonymously. Be kind and respectful! 💌</p>
+
+              <form onSubmit={handleSendMessage}>
+                {sendError && <div className="send-error">{sendError}</div>}
+                {sendSuccess && <div className="send-success">{sendSuccess}</div>}
+
+                <textarea
+                  className="message-textarea"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Write your anonymous message here..."
+                  rows="6"
+                  maxLength={messageLimits.MAX_MESSAGE_LENGTH}
+                  disabled={sending}
+                />
+
+                <div className="char-count">
+                  {message.length} / {messageLimits.MAX_MESSAGE_LENGTH}
+                </div>
+
+                <button type="submit" className="btn-send" disabled={sending || !message.trim()}>
+                  {sending ? "Sending..." : "Send Message"}
+                </button>
+              </form>
             </div>
-          </form>
+          </div>
         </div>
 
-        <div className="login-prompt">
-          <p>
+        {/* Footer */}
+        <div className="profile-footer">
+          <p className="login-prompt">
             Want to receive anonymous messages too?{" "}
             <a href="/register" className="link">
               Sign up here

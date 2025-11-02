@@ -79,20 +79,10 @@ export default function Profile({ onLogout }) {
 
       <div className="profile-card">
         <div className="profile-header">
-          <Avatar profile={profile} onUpload={handleUpload} onDelete={handleDelete} uploading={uploadingImage} />
-          <div className="profile-info">
-            <h2>{profile?.fullName || `${profile?.firstName || ""} ${profile?.lastName || ""}`}</h2>
-            <div className="profile-sub">
-              {profile?.email}
-              {profile?.email && (
-                <button
-                  className={`btn-visibility ${hiddenFields.includes("email") ? "hidden" : "visible"}`}
-                  onClick={() => toggleFieldVisibility("email")}
-                  title={hiddenFields.includes("email") ? "Private (Hidden from public)" : "Public (Visible on profile)"}
-                >
-                  {hiddenFields.includes("email") ? "🔒" : "🔓"}
-                </button>
-              )}
+          <div className="profile-header-left">
+            <Avatar profile={profile} onUpload={handleUpload} onDelete={handleDelete} uploading={uploadingImage} />
+            <div className="profile-info">
+              <h2>{profile?.fullName || `${profile?.firstName || ""} ${profile?.lastName || ""}`}</h2>
             </div>
           </div>
           <div className="profile-actions">
@@ -108,16 +98,9 @@ export default function Profile({ onLogout }) {
 
         <div className="profile-body">
           <div className="profile-left">
-            <h3>About</h3>
-            <label>Bio</label>
+            <h3>Bio</h3>
             <div className="bio-section">
-              <EditableField
-                value={profile?.bio}
-                fieldName="bio"
-                isTextarea={true}
-                onSave={updateProfile}
-                showVisibility={false}
-              />
+              <EditableField value={profile?.bio} fieldName="bio" isTextarea={true} onSave={updateProfile} showVisibility={false} />
             </div>
 
             <h3>Details</h3>
@@ -149,16 +132,35 @@ export default function Profile({ onLogout }) {
               </li>
 
               <li className="editable-row">
-                <strong>Age:</strong>
+                <strong>Email:</strong>
                 <div className="editable-value">
                   <EditableField
-                    label="Age"
-                    value={profile?.age}
-                    fieldName="age"
-                    type="text"
+                    label="Email"
+                    value={profile?.email}
+                    fieldName="email"
+                    type="email"
+                    onSave={() => {
+                      // TODO: Implement email update functionality
+                      return Promise.resolve({ success: false });
+                    }}
+                    showVisibility={true}
+                    isHidden={hiddenFields.includes("email")}
+                    onToggleVisibility={toggleFieldVisibility}
+                  />
+                </div>
+              </li>
+
+              <li className="editable-row">
+                <strong>Phone Number:</strong>
+                <div className="editable-value">
+                  <EditableField
+                    label="Phone Number"
+                    value={profile?.phoneNumber}
+                    fieldName="phoneNumber"
+                    type="tel"
                     onSave={updateProfile}
                     showVisibility={true}
-                    isHidden={hiddenFields.includes("age")}
+                    isHidden={hiddenFields.includes("phoneNumber")}
                     onToggleVisibility={toggleFieldVisibility}
                   />
                 </div>
@@ -184,26 +186,28 @@ export default function Profile({ onLogout }) {
               </li>
 
               <li className="editable-row">
-                <strong>Phone Number:</strong>
+                <strong>Age:</strong>
                 <div className="editable-value">
                   <EditableField
-                    label="Phone Number"
-                    value={profile?.phoneNumber}
-                    fieldName="phoneNumber"
-                    type="tel"
+                    label="Age"
+                    value={profile?.age}
+                    fieldName="age"
+                    type="text"
                     onSave={updateProfile}
                     showVisibility={true}
-                    isHidden={hiddenFields.includes("phoneNumber")}
+                    isHidden={hiddenFields.includes("age")}
                     onToggleVisibility={toggleFieldVisibility}
                   />
                 </div>
               </li>
             </ul>
-          </div>
 
-          <div className="profile-right">
-            <h3>Inbox</h3>
-            <MessageList messages={messages} />
+            <div className="inbox-section">
+              <h3>
+                Inbox <span className="message-count">({messages?.length || 0})</span>
+              </h3>
+              <MessageList messages={messages} />
+            </div>
           </div>
         </div>
 
