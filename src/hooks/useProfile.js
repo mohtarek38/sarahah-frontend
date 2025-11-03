@@ -84,16 +84,7 @@ export const useProfile = () => {
 
   const toggleFieldVisibility = useCallback(async (fieldName) => {
     try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${API_BASE}/users/me/toggle-field-visibility`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ field: fieldName }),
-      });
-
+      const res = await apiPatch(`/users/me/toggle-field-visibility`, { field: fieldName });
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) {
@@ -155,6 +146,5 @@ export const useProfile = () => {
     updateProfileImage,
     removeProfileImage,
     logout,
-    setError,
   };
 };

@@ -37,16 +37,3 @@ export const getRelativeTime = (timestamp) => {
     year: messageDate.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
   })}`;
 };
-
-/**
- * Format a date for profile join date display
- * @param {string|Date} date - The date to format
- * @returns {string} Formatted date string
- */
-export const formatJoinDate = (date) => {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-};

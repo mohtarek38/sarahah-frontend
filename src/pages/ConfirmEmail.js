@@ -119,19 +119,7 @@ export default function ConfirmEmail() {
         </button>
 
         <div className="confirm-help">
-          <small>
-            Didn't receive the code?{" "}
-            <button
-              type="button"
-              className="confirm-link"
-              onClick={(e) => {
-                e.preventDefault();
-                // TODO: Implement resend functionality when backend endpoint is available
-              }}
-            >
-              Resend code
-            </button>
-          </small>
+          <small>Didn't receive the code? Please check your spam folder or contact support.</small>
         </div>
       </form>
     </div>

@@ -5,13 +5,14 @@ import Avatar from "../components/Avatar/Avatar";
 import EditableField from "../components/EditableField/EditableField";
 import MessageList from "../components/MessageList/MessageList";
 import { useProfile } from "../hooks/useProfile";
-import { useMessages } from "../hooks/useMessages";
 import { useImageUpload } from "../hooks/useImageUpload";
+import { apiGet } from "../utils/api";
 import "./Profile.css";
 
 export default function Profile({ onLogout }) {
   const { darkMode } = useTheme();
   const [shareIdCopied, setShareIdCopied] = useState(false);
+  const [messages, setMessages] = useState([]);
   const {
     profile,
     loading,
@@ -26,13 +27,42 @@ export default function Profile({ onLogout }) {
     logout,
   } = useProfile();
 
-  const { messages } = useMessages();
-
   const { uploadingImage, imageUploadError, handleImageUpload, handleImageDelete } = useImageUpload();
 
+  // Fetch profile on mount
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  // Fetch messages on mount
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
+
+      try {
+        const inboxRes = await apiGet(`/messages/inbox`);
+        if (inboxRes.ok) {
+          const json = await inboxRes.json();
+          if (Array.isArray(json.data) && json.data.length > 0) {
+            setMessages(json.data);
+          } else if (json.message && json.message.toLowerCase().includes("no messages")) {
+            setMessages([]);
+          } else if (Array.isArray(json)) {
+            setMessages(json);
+          } else {
+            setMessages([]);
+          }
+        } else if (inboxRes.status === 404) {
+          setMessages([]);
+        }
+      } catch (err) {
+        console.error("Error fetching messages:", err);
+      }
+    };
+
+    fetchMessages();
+  }, []);
 
   const shareId = () => {
     const userId = profile?._id || profile?.id;
@@ -83,6 +113,16 @@ export default function Profile({ onLogout }) {
             <Avatar profile={profile} onUpload={handleUpload} onDelete={handleDelete} uploading={uploadingImage} />
             <div className="profile-info">
               <h2>{profile?.fullName || `${profile?.firstName || ""} ${profile?.lastName || ""}`}</h2>
+              {profile?.createdAt && (
+                <p className="profile-sub">
+                  Joined{" "}
+                  {new Date(profile.createdAt).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              )}
             </div>
           </div>
           <div className="profile-actions">

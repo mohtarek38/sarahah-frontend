@@ -4,7 +4,6 @@
 
 // API Configuration
 export const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:3000/api";
-export const POLLING_INTERVAL = +process.env.REACT_APP_POLLING_INTERVAL || 10000;
 export const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "";
 
 // Re-export validation constants from centralized location
@@ -22,7 +21,6 @@ export {
 
 export const config = {
   apiBase: API_BASE,
-  pollingInterval: POLLING_INTERVAL,
   googleClientId: GOOGLE_CLIENT_ID,
 };
 
