@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
+import MessageList from "../components/MessageList/MessageList";
 import { API_BASE, messageLimits } from "../config/config";
 import { validateMessage } from "../utils/validation";
 import "./PublicProfile.css";
@@ -14,6 +15,7 @@ export default function PublicProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [publicMessages, setPublicMessages] = useState([]);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const [sendSuccess, setSendSuccess] = useState("");
@@ -53,6 +55,37 @@ export default function PublicProfile() {
       setError("Invalid user ID");
       setLoading(false);
     }
+  }, [userId]);
+
+  // Fetch public messages
+  useEffect(() => {
+    const fetchPublicMessages = async () => {
+      if (!userId) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/messages/public/${userId}`);
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.data) && data.data.length > 0) {
+            setPublicMessages(data.data);
+          } else if (data.message && data.message.toLowerCase().includes("no")) {
+            setPublicMessages([]);
+          } else if (Array.isArray(data)) {
+            setPublicMessages(data);
+          } else {
+            setPublicMessages([]);
+          }
+        } else if (res.status === 404 || res.status === 200) {
+          setPublicMessages([]);
+        }
+      } catch (err) {
+        console.error("Error fetching public messages:", err);
+        setPublicMessages([]);
+      }
+    };
+
+    fetchPublicMessages();
   }, [userId]);
 
   const handleSendMessage = async (e) => {
@@ -248,6 +281,14 @@ export default function PublicProfile() {
                   {sending ? "Sending..." : "Send Message"}
                 </button>
               </form>
+            </div>
+
+            {/* Public Messages Section */}
+            <div className="inbox-section">
+              <h3>
+                Public Messages <span className="message-count">({publicMessages?.length || 0})</span>
+              </h3>
+              <MessageList messages={publicMessages} />
             </div>
           </div>
         </div>

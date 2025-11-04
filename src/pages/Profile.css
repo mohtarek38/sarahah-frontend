@@ -681,6 +681,13 @@ select.edit-input {
   margin-bottom: 0;
 }
 
+.msg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
 .msg-sender {
   font-weight: 700;
   font-size: 0.7rem;
@@ -691,6 +698,71 @@ select.edit-input {
   padding: 4px 10px;
   background: rgba(102, 126, 234, 0.1);
   border-radius: 6px;
+}
+
+.msg-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-visibility {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.btn-visibility:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.btn-visibility.visible {
+  color: #48bb78;
+}
+
+.btn-visibility.visible:hover {
+  background: rgba(72, 187, 120, 0.1);
+}
+
+.btn-visibility.hidden {
+  color: #f59e0b;
+}
+
+.btn-visibility.hidden:hover {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.btn-visibility:active {
+  transform: scale(0.95);
+}
+
+.btn-delete-message {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.btn-delete-message:hover {
+  opacity: 1;
+  background: rgba(239, 68, 68, 0.1);
+  transform: scale(1.1);
+}
+
+.btn-delete-message:active {
+  transform: scale(0.95);
 }
 
 .msg-content {
@@ -1124,6 +1196,18 @@ select.edit-input {
 .dark-mode .msg-sender {
   color: #8b95ea;
   background: rgba(139, 149, 234, 0.15);
+}
+
+.dark-mode .btn-visibility.visible:hover {
+  background: rgba(72, 187, 120, 0.2);
+}
+
+.dark-mode .btn-visibility.hidden:hover {
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.dark-mode .btn-delete-message:hover {
+  background: rgba(252, 129, 129, 0.15);
 }
 
 .dark-mode .msg-content {

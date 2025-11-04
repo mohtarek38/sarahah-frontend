@@ -4,15 +4,19 @@ import ThemeToggle from "../components/ThemeToggle";
 import Avatar from "../components/Avatar/Avatar";
 import EditableField from "../components/EditableField/EditableField";
 import MessageList from "../components/MessageList/MessageList";
+import Modal from "../components/Modal/Modal";
+import Toast from "../components/Toast/Toast";
 import { useProfile } from "../hooks/useProfile";
 import { useImageUpload } from "../hooks/useImageUpload";
-import { apiGet } from "../utils/api";
+import { apiGet, apiDelete, apiPatch } from "../utils/api";
 import "./Profile.css";
 
 export default function Profile({ onLogout }) {
   const { darkMode } = useTheme();
   const [shareIdCopied, setShareIdCopied] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [modalState, setModalState] = useState({ isOpen: false, messageId: null });
+  const [toast, setToast] = useState({ isVisible: false, message: "", type: "info" });
   const {
     profile,
     loading,
@@ -67,7 +71,7 @@ export default function Profile({ onLogout }) {
   const shareId = () => {
     const userId = profile?._id || profile?.id;
     if (!userId) {
-      alert("Profile ID not available");
+      showToast("Profile ID not available", "error");
       return;
     }
 
@@ -78,11 +82,13 @@ export default function Profile({ onLogout }) {
     navigator.clipboard.writeText(profileUrl).then(
       () => {
         setShareIdCopied(true);
+        showToast("Profile link copied to clipboard!", "success");
         setTimeout(() => setShareIdCopied(false), 3000);
       },
       (err) => {
         console.error("Failed to copy link:", err);
-        alert(`Your Profile Link:\n${profileUrl}\n\nShare this link with others!`);
+        showToast("Failed to copy link. Check console for the URL.", "error");
+        console.log("Your Profile Link:", profileUrl);
       }
     );
   };
@@ -99,6 +105,69 @@ export default function Profile({ onLogout }) {
     });
   };
 
+  const showToast = (message, type = "info") => {
+    setToast({ isVisible: true, message, type });
+  };
+
+  const closeToast = () => {
+    setToast({ ...toast, isVisible: false });
+  };
+
+  const handleDeleteMessage = (messageId) => {
+    setModalState({ isOpen: true, messageId });
+  };
+
+  const confirmDelete = async () => {
+    const { messageId } = modalState;
+    setModalState({ isOpen: false, messageId: null });
+
+    try {
+      const response = await apiDelete(`/messages/delete/${messageId}`);
+      
+      if (response.ok) {
+        // Remove the deleted message from state
+        setMessages((prevMessages) => prevMessages.filter((msg) => (msg._id || msg.id) !== messageId));
+        showToast("Message deleted successfully", "success");
+      } else {
+        const errorData = await response.json();
+        showToast(errorData.message || "Failed to delete message", "error");
+      }
+    } catch (err) {
+      console.error("Error deleting message:", err);
+      showToast("Failed to delete message. Please try again.", "error");
+    }
+  };
+
+  const cancelDelete = () => {
+    setModalState({ isOpen: false, messageId: null });
+  };
+
+  const handleToggleMessageVisibility = async (messageId) => {
+    try {
+      const response = await apiPatch(`/messages/toggle-visibility/${messageId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Update the message in state with the new hidden value
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            (msg._id || msg.id) === messageId ? { ...msg, hidden: data.message.hidden } : msg
+          )
+        );
+        showToast(
+          data.message.hidden ? "Message is now private" : "Message is now public",
+          "success"
+        );
+      } else {
+        const errorData = await response.json();
+        showToast(errorData.message || "Failed to toggle message visibility", "error");
+      }
+    } catch (err) {
+      console.error("Error toggling message visibility:", err);
+      showToast("Failed to toggle message visibility. Please try again.", "error");
+    }
+  };
+
   if (loading) {
     return <div className="profile-root">Loading profile...</div>;
   }
@@ -106,6 +175,19 @@ export default function Profile({ onLogout }) {
   return (
     <div className={`profile-root ${darkMode ? "dark-mode" : ""}`}>
       <ThemeToggle />
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title="Delete Message"
+        message="Are you sure you want to delete this message? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        danger={true}
+      />
+
+      <Toast message={toast.message} type={toast.type} isVisible={toast.isVisible} onClose={closeToast} />
 
       <div className="profile-card">
         <div className="profile-header">
@@ -246,7 +328,7 @@ export default function Profile({ onLogout }) {
               <h3>
                 Inbox <span className="message-count">({messages?.length || 0})</span>
               </h3>
-              <MessageList messages={messages} />
+              <MessageList messages={messages} onDelete={handleDeleteMessage} onToggleVisibility={handleToggleMessageVisibility} />
             </div>
           </div>
         </div>
