@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
 import Avatar from "../components/Avatar/Avatar";
@@ -8,15 +8,19 @@ import Modal from "../components/Modal/Modal";
 import Toast from "../components/Toast/Toast";
 import { useProfile } from "../hooks/useProfile";
 import { useImageUpload } from "../hooks/useImageUpload";
-import { apiGet, apiDelete, apiPatch } from "../utils/api";
+import { useFetchMessages } from "../hooks/useFetchMessages";
+import { genderOptions } from "../config/config";
+import { apiDelete, apiPatch } from "../utils/api";
 import "./Profile.css";
 
 export default function Profile({ onLogout }) {
   const { darkMode } = useTheme();
   const [shareIdCopied, setShareIdCopied] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [modalState, setModalState] = useState({ isOpen: false, messageId: null });
+  const [modalState, setModalState] = useState({ isOpen: false, messageId: null, type: "deleteMessage" });
   const [toast, setToast] = useState({ isVisible: false, message: "", type: "info" });
+  const [togglingVisibility, setTogglingVisibility] = useState(null); // Track which message is being toggled
+
+  const { messages, setMessages } = useFetchMessages(null, false, true);
   const {
     profile,
     loading,
@@ -33,40 +37,31 @@ export default function Profile({ onLogout }) {
 
   const { uploadingImage, imageUploadError, handleImageUpload, handleImageDelete } = useImageUpload();
 
+  // Toast functions - defined early to avoid 'use before define' errors
+  const showToast = useCallback((message, type = "info") => {
+    setToast({ isVisible: true, message, type });
+  }, []);
+
+  const closeToast = useCallback(() => {
+    setToast((prev) => ({ ...prev, isVisible: false }));
+  }, []);
+
   // Fetch profile on mount
   useEffect(() => {
-    fetchProfile();
+    const controller = new AbortController();
+    fetchProfile(controller.signal);
+
+    return () => {
+      controller.abort();
+    };
   }, [fetchProfile]);
 
-  // Fetch messages on mount
+  // Show error toast when profile fetch fails
   useEffect(() => {
-    const fetchMessages = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) return;
-
-      try {
-        const inboxRes = await apiGet(`/messages/inbox`);
-        if (inboxRes.ok) {
-          const json = await inboxRes.json();
-          if (Array.isArray(json.data) && json.data.length > 0) {
-            setMessages(json.data);
-          } else if (json.message && json.message.toLowerCase().includes("no messages")) {
-            setMessages([]);
-          } else if (Array.isArray(json)) {
-            setMessages(json);
-          } else {
-            setMessages([]);
-          }
-        } else if (inboxRes.status === 404) {
-          setMessages([]);
-        }
-      } catch (err) {
-        console.error("Error fetching messages:", err);
-      }
-    };
-
-    fetchMessages();
-  }, []);
+    if (error) {
+      showToast(error, "error");
+    }
+  }, [error, showToast]);
 
   const shareId = () => {
     const userId = profile?._id || profile?.id;
@@ -100,64 +95,66 @@ export default function Profile({ onLogout }) {
   };
 
   const handleDelete = () => {
-    handleImageDelete(() => {
-      removeProfileImage();
-    });
-  };
-
-  const showToast = (message, type = "info") => {
-    setToast({ isVisible: true, message, type });
-  };
-
-  const closeToast = () => {
-    setToast({ ...toast, isVisible: false });
+    handleImageDelete(
+      () => {
+        removeProfileImage();
+      },
+      (confirmCallback) => {
+        setModalState({ isOpen: true, type: "deleteImage", confirmCallback });
+      }
+    );
   };
 
   const handleDeleteMessage = (messageId) => {
-    setModalState({ isOpen: true, messageId });
+    setModalState({ isOpen: true, messageId, type: "deleteMessage" });
   };
 
   const confirmDelete = async () => {
-    const { messageId } = modalState;
-    setModalState({ isOpen: false, messageId: null });
+    const { messageId, type, confirmCallback } = modalState;
+    setModalState({ isOpen: false, messageId: null, type: null, confirmCallback: null });
 
-    try {
-      const response = await apiDelete(`/messages/delete/${messageId}`);
-      
-      if (response.ok) {
-        // Remove the deleted message from state
-        setMessages((prevMessages) => prevMessages.filter((msg) => (msg._id || msg.id) !== messageId));
-        showToast("Message deleted successfully", "success");
-      } else {
-        const errorData = await response.json();
-        showToast(errorData.message || "Failed to delete message", "error");
+    if (type === "deleteImage" && confirmCallback) {
+      await confirmCallback();
+      return;
+    }
+
+    if (type === "deleteMessage" && messageId) {
+      try {
+        const response = await apiDelete(`/messages/delete/${messageId}`);
+
+        if (response.ok) {
+          // Remove the deleted message from state
+          setMessages((prevMessages) => prevMessages.filter((msg) => (msg._id || msg.id) !== messageId));
+          showToast("Message deleted successfully", "success");
+        } else {
+          const errorData = await response.json();
+          showToast(errorData.message || "Failed to delete message", "error");
+        }
+      } catch (err) {
+        console.error("Error deleting message:", err);
+        showToast("Failed to delete message. Please try again.", "error");
       }
-    } catch (err) {
-      console.error("Error deleting message:", err);
-      showToast("Failed to delete message. Please try again.", "error");
     }
   };
 
   const cancelDelete = () => {
-    setModalState({ isOpen: false, messageId: null });
+    setModalState({ isOpen: false, messageId: null, type: null, confirmCallback: null });
   };
 
   const handleToggleMessageVisibility = async (messageId) => {
+    if (togglingVisibility === messageId) return; // Prevent concurrent toggles
+
+    setTogglingVisibility(messageId);
     try {
       const response = await apiPatch(`/messages/toggle-visibility/${messageId}`);
-      
+
       if (response.ok) {
         const data = await response.json();
         // Update the message in state with the new hidden value
         setMessages((prevMessages) =>
-          prevMessages.map((msg) =>
-            (msg._id || msg.id) === messageId ? { ...msg, hidden: data.message.hidden } : msg
-          )
+          prevMessages.map((msg) => ((msg._id || msg.id) === messageId ? { ...msg, hidden: data.message.hidden } : msg))
         );
-        showToast(
-          data.message.hidden ? "Message is now private" : "Message is now public",
-          "success"
-        );
+        showToast(data.message.hidden ? "Message is now private" : "Message is now public", "success");
       } else {
         const errorData = await response.json();
         showToast(errorData.message || "Failed to toggle message visibility", "error");
@@ -165,6 +162,8 @@ export default function Profile({ onLogout }) {
     } catch (err) {
       console.error("Error toggling message visibility:", err);
       showToast("Failed to toggle message visibility. Please try again.", "error");
+    } finally {
+      setTogglingVisibility(null);
     }
   };
 
@@ -180,8 +179,12 @@ export default function Profile({ onLogout }) {
         isOpen={modalState.isOpen}
         onClose={cancelDelete}
         onConfirm={confirmDelete}
-        title="Delete Message"
-        message="Are you sure you want to delete this message? This action cannot be undone."
+        title={modalState.type === "deleteImage" ? "Remove Profile Picture" : "Delete Message"}
+        message={
+          modalState.type === "deleteImage"
+            ? "Are you sure you want to remove your profile picture? This action cannot be undone."
+            : "Are you sure you want to delete this message? This action cannot be undone."
+        }
         confirmText="Delete"
         cancelText="Cancel"
         danger={true}
@@ -261,13 +264,11 @@ export default function Profile({ onLogout }) {
                     value={profile?.email}
                     fieldName="email"
                     type="email"
-                    onSave={() => {
-                      // TODO: Implement email update functionality
-                      return Promise.resolve({ success: false });
-                    }}
+                    onSave={null}
                     showVisibility={true}
                     isHidden={hiddenFields.includes("email")}
                     onToggleVisibility={toggleFieldVisibility}
+                    disableEdit={true}
                   />
                 </div>
               </li>
@@ -295,10 +296,7 @@ export default function Profile({ onLogout }) {
                     label="Gender"
                     value={profile?.gender}
                     fieldName="gender"
-                    options={[
-                      { value: "male", label: "Male" },
-                      { value: "female", label: "Female" },
-                    ]}
+                    options={genderOptions}
                     onSave={updateProfile}
                     showVisibility={true}
                     isHidden={hiddenFields.includes("gender")}
@@ -328,7 +326,12 @@ export default function Profile({ onLogout }) {
               <h3>
                 Inbox <span className="message-count">({messages?.length || 0})</span>
               </h3>
-              <MessageList messages={messages} onDelete={handleDeleteMessage} onToggleVisibility={handleToggleMessageVisibility} />
+              <MessageList
+                messages={messages}
+                onDelete={handleDeleteMessage}
+                onToggleVisibility={handleToggleMessageVisibility}
+                togglingVisibility={togglingVisibility}
+              />
             </div>
           </div>
         </div>

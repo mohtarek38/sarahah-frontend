@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import ThemeToggle from "../components/ThemeToggle";
 import MessageList from "../components/MessageList/MessageList";
+import { useFetchMessages } from "../hooks/useFetchMessages";
 import { API_BASE, messageLimits } from "../config/config";
 import { validateMessage } from "../utils/validation";
 import "./PublicProfile.css";
@@ -15,18 +16,21 @@ export default function PublicProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [publicMessages, setPublicMessages] = useState([]);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const [sendSuccess, setSendSuccess] = useState("");
 
+  const { messages: publicMessages, refetch: refetchMessages } = useFetchMessages(userId, true, false);
+
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchUserProfile = async () => {
       try {
         setLoading(true);
         setError("");
 
-        const res = await fetch(`${API_BASE}/users/${userId}`);
+        const res = await fetch(`${API_BASE}/users/${userId}`, { signal: controller.signal });
 
         if (!res.ok) {
           if (res.status === 404) {
@@ -42,6 +46,9 @@ export default function PublicProfile() {
         const data = await res.json();
         setProfile(data.user);
       } catch (err) {
+        // Ignore abort errors
+        if (err.name === "AbortError") return;
+
         console.error("Error fetching user profile:", err);
         setError("Network error. Please try again.");
       } finally {
@@ -55,37 +62,10 @@ export default function PublicProfile() {
       setError("Invalid user ID");
       setLoading(false);
     }
-  }, [userId]);
 
-  // Fetch public messages
-  useEffect(() => {
-    const fetchPublicMessages = async () => {
-      if (!userId) return;
-
-      try {
-        const res = await fetch(`${API_BASE}/messages/public/${userId}`);
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.data) && data.data.length > 0) {
-            setPublicMessages(data.data);
-          } else if (data.message && data.message.toLowerCase().includes("no")) {
-            setPublicMessages([]);
-          } else if (Array.isArray(data)) {
-            setPublicMessages(data);
-          } else {
-            setPublicMessages([]);
-          }
-        } else if (res.status === 404 || res.status === 200) {
-          setPublicMessages([]);
-        }
-      } catch (err) {
-        console.error("Error fetching public messages:", err);
-        setPublicMessages([]);
-      }
+    return () => {
+      controller.abort();
     };
-
-    fetchPublicMessages();
   }, [userId]);
 
   const handleSendMessage = async (e) => {
@@ -120,6 +100,9 @@ export default function PublicProfile() {
 
       setSendSuccess("Message sent successfully! 🎉");
       setMessage("");
+
+      // Refetch public messages to show the new message if it's public
+      refetchMessages();
 
       setTimeout(() => {
         setSendSuccess("");

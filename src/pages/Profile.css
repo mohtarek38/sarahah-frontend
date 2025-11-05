@@ -743,6 +743,17 @@ select.edit-input {
   transform: scale(0.95);
 }
 
+.btn-visibility:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-visibility:disabled:hover {
+  background: transparent;
+  transform: none;
+}
+
 .btn-delete-message {
   background: transparent;
   border: none;

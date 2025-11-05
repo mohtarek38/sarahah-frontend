@@ -45,3 +45,9 @@ export const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A
 
 // Email pattern (basic validation)
 export const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Gender options for UI dropdowns
+export const genderOptions = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+];

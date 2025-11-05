@@ -12,6 +12,7 @@ export default function EditableField({
   showVisibility = false,
   isHidden = false,
   onToggleVisibility,
+  disableEdit = false,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
@@ -136,9 +137,11 @@ export default function EditableField({
             {isHidden ? "🔒" : "🔓"}
           </button>
         )}
-        <button className="btn-edit" onClick={startEdit}>
-          ✎
-        </button>
+        {!disableEdit && (
+          <button className="btn-edit" onClick={startEdit}>
+            ✎
+          </button>
+        )}
       </div>
     </>
   );

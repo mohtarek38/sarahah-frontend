@@ -63,42 +63,53 @@ export const useImageUpload = () => {
     }
   }, []);
 
-  const handleImageDelete = useCallback(async (onSuccess) => {
+  const handleImageDelete = useCallback((onSuccess, onConfirm) => {
+    const executeDelete = async () => {
+      setUploadingImage(true);
+      setImageUploadError("");
+
+      try {
+        const token = localStorage.getItem("accessToken");
+        const res = await fetch(`${API_BASE}/users/me/delete-profile-image`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const json = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          setImageUploadError(json.message || "Failed to delete image");
+          setUploadingImage(false);
+          return;
+        }
+
+        // Call success callback
+        if (onSuccess) {
+          onSuccess();
+        }
+      } catch (err) {
+        console.error(err);
+        setImageUploadError("Network error while deleting image");
+      } finally {
+        setUploadingImage(false);
+      }
+    };
+
+    // If onConfirm callback provided, call it to show modal
+    // Otherwise fall back to window.confirm for backwards compatibility
+    if (onConfirm) {
+      onConfirm(executeDelete);
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to remove your profile picture?")) {
       return;
     }
 
-    setUploadingImage(true);
-    setImageUploadError("");
-
-    try {
-      const token = localStorage.getItem("accessToken");
-      const res = await fetch(`${API_BASE}/users/me/delete-profile-image`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      const json = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setImageUploadError(json.message || "Failed to delete image");
-        setUploadingImage(false);
-        return;
-      }
-
-      // Call success callback
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (err) {
-      console.error(err);
-      setImageUploadError("Network error while deleting image");
-    } finally {
-      setUploadingImage(false);
-    }
+    executeDelete();
   }, []);
 
   return {

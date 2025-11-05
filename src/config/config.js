@@ -14,6 +14,7 @@ export {
   passwordLimits,
   messageLimits,
   genderEnum,
+  genderOptions,
   phonePattern,
   passwordPattern,
   emailPattern,

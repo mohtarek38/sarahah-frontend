@@ -14,7 +14,7 @@ export const useProfile = () => {
   const [updateSuccess, setUpdateSuccess] = useState("");
   const [hiddenFields, setHiddenFields] = useState([]);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfile = useCallback(async (signal) => {
     setLoading(true);
     setError("");
     const token = localStorage.getItem("accessToken");
@@ -25,7 +25,7 @@ export const useProfile = () => {
     }
 
     try {
-      const profileRes = await fetchWithAuth(`${API_BASE}/users/me`);
+      const profileRes = await fetchWithAuth(`${API_BASE}/users/me`, { signal });
       if (profileRes.ok) {
         const p = await profileRes.json();
         setProfile(p.user || p);
@@ -37,6 +37,9 @@ export const useProfile = () => {
         setError(t.message || "Failed to fetch profile");
       }
     } catch (err) {
+      // Ignore abort errors
+      if (err.name === "AbortError") return;
+
       console.error(err);
       setError("Network error while fetching profile.");
     } finally {

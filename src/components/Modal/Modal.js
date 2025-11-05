@@ -1,7 +1,16 @@
 import React from "react";
 import "./Modal.css";
 
-export default function Modal({ isOpen, onClose, onConfirm, title, message, confirmText = "Confirm", cancelText = "Cancel", danger = false }) {
+export default function Modal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  danger = false,
+}) {
   if (!isOpen) return null;
 
   return (
