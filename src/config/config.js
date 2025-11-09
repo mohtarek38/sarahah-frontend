@@ -3,7 +3,7 @@
  */
 
 // API Configuration
-export const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:3000/api";
+export const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000/api";
 export const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "";
 
 // Re-export validation constants from centralized location
